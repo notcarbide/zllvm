@@ -1,0 +1,129 @@
+#!/usr/bin/make -f
+
+JOBS = $(shell grep processor /proc/cpuinfo|wc -l)
+CDATE = $(shell date "+%Y-%m-%d")
+ZLLVMVERSION = 14
+
+# Use llvm linker
+CFLAGS_EXTRA =
+CXXFLAGS_EXTRA =
+LDFLAGS_EXTRA = -fuse-ld=lld
+
+# Collect build flags
+BUILD_CFLAGS = $(CFLAGS) $(CFLAGS_EXTRA) $(CPPFLAGS)
+BUILD_CXXFLAGS = $(CXXFLAGS) $(CXXFLAGS_EXTRA) $(CPPFLAGS)
+BUILD_LDFLAGS = $(LDFLAGS) $(LDFLAGS_EXTRA)
+
+BASE_PATH := $(CURDIR)
+INSTR_PATH := $(BASE_PATH)/llvm-instr
+PGO_PATH := $(BASE_PATH)/llvm-pgo
+
+PROFILE_PATH := $(INSTR_PATH)/profiles
+
+# Compile kernel to test instrumented build
+KERNEL_DIR = $(BASE_PATH)/../pi-kernel
+KERNEL_BRANCH = next
+
+INSTR_FLAGS := \
+	-DLLVM_ENABLE_PROJECTS="clang;lld" \
+	-DLLVM_BUILD_INSTRUMENTED=ON \
+	-DLLVM_BUILD_RUNTIME=NO
+
+PGO_FLAGS := \
+	-DLLVM_ENABLE_LTO=Thin \
+	-DCMAKE_SUPPRESS_REGENERATION=ON \
+	-DLLVM_PROFDATA_FILE=$(INSTR_PATH)/profiles/clang.profdata \
+	-DPACKAGE_VENDOR=ZapDragon \
+	-DENABLE_LINKER_BUILD_ID=ON \
+	-DLLVM_ENABLE_PROJECTS="clang;lld;polly" \
+	-DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
+        -DLLVM_ENABLE_RTTI=ON \
+	-DLLVM_ENABLE_DUMP=ON \
+	-DLLVM_ENABLE_LIBPFM=ON \
+	-DLLVM_POLLY_LINK_INTO_TOOLS=ON \
+	-DLLVM_LINK_LLVM_DYLIB=ON \
+	-DCLANG_LINK_CLANG_DYLIB=ON \
+	-DCLANG_DEFAULT_LINKER=lld \
+        -DCLANG_DEFAULT_CXX_STDLIB=libstdc++ \
+        -DCLANG_DEFAULT_RTLIB=libgcc \
+        -DCOMPILER_RT_INCLUDE_TESTS=OFF \
+	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON \
+	-DLIBUNWIND_USE_COMPILER_RT=ON \
+	-DLIBCXXABI_ENABLE_EXCEPTIONS=ON \
+	-DLIBCXXABI_USE_COMPILER_RT=ON \
+	-DLIBCXX_ENABLE_EXCEPTIONS=ON \
+	-DLIBCXX_INSTALL_EXPERIMENTAL_LIBRARY=ON \
+	-DLIBCXX_USE_COMPILER_RT=ON \
+	-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+	-DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON \
+	-DLIBCXX_STATICALLY_LINK_ABI_IN_SHARED_LIBRARY=OFF \
+	-DBUILTINS_CMAKE_ARGS="-DCMAKE_C_FLAGS=$(BUILD_CFLAGS);-DCMAKE_CXX_FLAGS=$(BUILD_CXXFLAGS);-DCMAKE_EXE_LINKER_FLAGS=$(BUILD_LDFLAGS);-DCMAKE_SHARED_LINKER_FLAGS=$(BUILD_LDFLAGS);-DCMAKE_MODULE_LINKER_FLAGS=$(BUILD_LDFLAGS);-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF" \
+	-DRUNTIMES_CMAKE_ARGS="-DCMAKE_C_FLAGS=$(BUILD_CFLAGS);-DCMAKE_CXX_FLAGS=$(BUILD_CXXFLAGS);-DCMAKE_EXE_LINKER_FLAGS=$(BUILD_LDFLAGS);-DCMAKE_SHARED_LINKER_FLAGS=$(BUILD_LDFLAGS);-DCMAKE_MODULE_LINKER_FLAGS=$(BUILD_LDFLAGS);-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF"
+
+define cmake_common
+	cmake -S llvm-project/llvm/ -B $1 \
+		-G Ninja \
+		-DCMAKE_C_COMPILER=/usr/bin/clang \
+		-DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+		-DCMAKE_LINKER=/usr/bin/ld.lld \
+	        -DCMAKE_INSTALL_PREFIX=$1/out/zllvm-$(ZLLVMVERSION) \
+	        -DCMAKE_BUILD_TYPE=Release \
+	        -DCMAKE_C_FLAGS="$(BUILD_CFLAGS)" \
+	        -DCMAKE_CXX_FLAGS="$(BUILD_CXXFLAGS)" \
+		-DCMAKE_SHARED_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
+		-DCMAKE_MODULE_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
+	        -DCMAKE_EXE_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
+	        -DLLVM_TARGETS_TO_BUILD="Native;ARM" \
+		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="AArch64" \
+		-DLLVM_ENABLE_LLD=ON \
+	        -DLLVM_ENABLE_PIC=ON \
+		-DLLVM_ENABLE_FFI=ON \
+	        -DCLANG_DEFAULT_PIE_ON_LINUX=ON \
+	        -DLLVM_INSTALL_UTILS=ON \
+		-DLLVM_VERSION_SUFFIX= \
+		-DLLVM_INCLUDE_GO_TESTS=OFF \
+		-DLLVM_USE_RELATIVE_PATHS_IN_FILES=ON \
+		-DLLVM_BUILD_DOCS=OFF \
+		-DCLANG_BUILD_EXAMPLES=OFF \
+		$(CMAKE_EXTRA)
+endef
+
+default all: llvm-instr test-instr llvm-pgo package-pgo
+
+package-pgo:
+	cp llvm-project/llvm/LICENSE.TXT llvm-pgo/out/zllvm-$(ZLLVMVERSION)
+	XZ_OPT="-4 -T$(JOBS)" \
+		tar Jvcf zapdragon-$(ZLLVMVERSION)-BETA_x86-$(CDATE).tar.xz \
+		-C llvm-pgo/out zllvm-$(ZLLVMVERSION)
+
+llvm-pgo: BUILD_LDFLAGS += -Wl,-q
+llvm-pgo:
+	$(call cmake_common,$@) \
+		$(PGO_FLAGS)
+	ninja -C $@ install
+	zap/arm-crt clean && zap/arm-crt && \
+		zap/arm-crt install \
+		INSTALL_DIR=$(PGO_PATH)/out/zllvm-$(ZLLVMVERSION)/lib/clang/*/lib/linux
+
+test-instr:
+	cd $(KERNEL_DIR) && \
+		git fetch origin && \
+		git reset --hard && \
+		git checkout origin/$(KERNEL_BRANCH) && \
+		make clean && \
+		./compile PACKAGE_KERNEL=no OPT_CONFIGS="" \
+			LLVM_DIR=$(INSTR_PATH)/out/zllvm-$(ZLLVMVERSION)
+	cd llvm-instr/profiles && \
+		llvm-profdata merge -output=clang.profdata *
+
+llvm-instr:
+	$(call cmake_common,$@) \
+		$(INSTR_FLAGS)
+	ninja -C $@ install
+
+clean:
+	rm -rf llvm-pgo llvm-instr
+	zap/arm-crt clean
+	rm -f zapdragon*.tar.xz
+
+.PHONY: default all clean llvm-instr test-instr llvm-pgo package-pgo

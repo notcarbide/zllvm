@@ -1,0 +1,67 @@
+#!/usr/bin/make -f
+
+ARMHF_CFLAGS = -arch=armv7a
+ARM64_CFLAGS = -arch=armv8a
+
+ARMHF_TRIPLE = arm-none-linux-gnueabihf
+ARM64_TRIPLE = aarch64-none-linux-gnu
+
+BASE_PATH := $(CURDIR)
+EXT_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/arm-10.3
+EXT64_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/aarch64-10.3
+
+CFLAGS_EXTRA = -Wno-unused-command-line-argument
+CXXFLAGS_EXTRA = -Wno-unused-command-line-argument
+LDFLAGS_EXTRA = -fuse-ld=lld
+
+BUILD_CFLAGS = $(CFLAGS) $(CFLAGS_EXTRA) $(CPPFLAGS)
+BUILD_CXXFLAGS = $(CXXFLAGS) $(CXXFLAGS_EXTRA) $(CPPFLAGS)
+BUILD_LDFLAGS = $(LDFLAGS) $(LDFLAGS_EXTRA)
+
+CPATH = /usr/bin/
+INSTALL_DIR = out
+
+define build_cmd
+	cmake llvm-project/compiler-rt -B $1-rt \
+		-G Ninja \
+		-DLLVM_CONFIG_PATH=$(CPATH)llvm-config \
+		-DCMAKE_AR=$(CPATH)llvm-ar \
+		-DCMAKE_NM=$(CPATH)llvm-nm \
+		-DCMAKE_RANLIB=$(CPATH)llvm-ranlib \
+		-DCMAKE_C_COMPILER=$(CPATH)clang \
+		-DCMAKE_CXX_COMPILER=$(CPATH)clang++ \
+		-DCMAKE_ASM_COMPILER_TARGET="$2" \
+		-DCMAKE_C_COMPILER_TARGET="$2" \
+		-DCMAKE_CXX_COMPILER_TARGET="$2" \
+		-DCMAKE_C_FLAGS="$3 $(BUILD_CFLAGS)" \
+		-DCMAKE_CXX_FLAGS="$3 $(BUILD_CXXFLAGS)" \
+		-DCMAKE_EXE_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
+		-DCOMPILER_RT_BUILD_BUILTINS=ON \
+		-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+		-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+		-DCOMPILER_RT_BUILD_PROFILE=OFF \
+		-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+		-DCOMPILER_RT_BUILD_XRAY=OFF \
+		-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+		-DCMAKE_SYSROOT=$4/$2/libc \
+		-DCMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN=$4 \
+		-DCMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN=$4
+
+	ninja -C $1-rt lib/all
+endef
+
+default all: armhf arm64
+
+install:
+	cp -f *-rt/lib/linux/*.a $(INSTALL_DIR)
+
+arm64:
+	$(call build_cmd,$@,$(ARM64_TRIPLE),$(ARM64_CFLAGS),$(EXT64_TOOLCHAIN))
+
+armhf:
+	$(call build_cmd,$@,$(ARMHF_TRIPLE),$(ARMHF_CFLAGS),$(EXT_TOOLCHAIN))
+
+clean:
+	rm -rf *-rt
+
+.PHONY: default all install clean armhf arm64

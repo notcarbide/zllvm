@@ -1,0 +1,21 @@
+diff --git a/llvm/cmake/modules/VersionFromVCS.cmake b/llvm/cmake/modules/VersionFromVCS.cmake
+index 18edbeabe3e4..ed03380763bb 100644
+--- a/llvm/cmake/modules/VersionFromVCS.cmake
++++ b/llvm/cmake/modules/VersionFromVCS.cmake
+@@ -14,7 +14,7 @@ function(get_source_info path revision repository)
+     if(git_result EQUAL 0)
+       string(STRIP "${git_output}" git_output)
+       get_filename_component(git_dir ${git_output} ABSOLUTE BASE_DIR ${path})
+-      execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
++      execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+         WORKING_DIRECTORY ${path}
+         RESULT_VARIABLE git_result
+         OUTPUT_VARIABLE git_output)
+@@ -39,6 +39,7 @@ function(get_source_info path revision repository)
+         OUTPUT_VARIABLE git_output
+         ERROR_QUIET)
+       if(git_result EQUAL 0)
++        string(REPLACE "https://" "" git_output ${git_output})
+         string(STRIP "${git_output}" git_output)
+         set(${repository} ${git_output} PARENT_SCOPE)
+       else()
