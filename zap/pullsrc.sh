@@ -22,4 +22,7 @@ else
   reset_repo llvm-project
 fi
 
+echo "\nApplying patch(es)..."
+git apply -v ../zap/patches/*.patch
+
 exit
