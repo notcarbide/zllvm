@@ -10,6 +10,9 @@ BASE_PATH := $(CURDIR)
 EXT_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/arm-10.3
 EXT64_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/aarch64-10.3
 
+ARMHF_SYSROOT = $(EXT_TOOLCHAIN)/$(ARMHF_TRIPLE)/libc
+ARM64_SYSROOT = $(EXT64_TOOLCHAIN)/$(ARM64_TRIPLE)/libc
+
 CFLAGS_EXTRA = -Wno-unused-command-line-argument
 CXXFLAGS_EXTRA = -Wno-unused-command-line-argument
 LDFLAGS_EXTRA = -fuse-ld=lld
@@ -43,7 +46,7 @@ define build_cmd
 		-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
 		-DCOMPILER_RT_BUILD_XRAY=OFF \
 		-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
-		-DCMAKE_SYSROOT=$4/$2/libc \
+		-DCMAKE_SYSROOT=$5 \
 		-DCMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN=$4 \
 		-DCMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN=$4
 
@@ -56,10 +59,10 @@ install:
 	cp -f *-rt/lib/linux/*.a $(INSTALL_DIR)
 
 arm64:
-	$(call build_cmd,$@,$(ARM64_TRIPLE),$(ARM64_CFLAGS),$(EXT64_TOOLCHAIN))
+	$(call build_cmd,$@,$(ARM64_TRIPLE),$(ARM64_CFLAGS),$(EXT64_TOOLCHAIN),$(ARM64_SYSROOT))
 
 armhf:
-	$(call build_cmd,$@,$(ARMHF_TRIPLE),$(ARMHF_CFLAGS),$(EXT_TOOLCHAIN))
+	$(call build_cmd,$@,$(ARMHF_TRIPLE),$(ARMHF_CFLAGS),$(EXT_TOOLCHAIN),$(ARMHF_SYSROOT))
 
 clean:
 	rm -rf *-rt
