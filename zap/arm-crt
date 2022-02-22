@@ -1,15 +1,24 @@
 #!/usr/bin/make -f
 
+# CFLAGS per ARM target
 ARMHF_CFLAGS = -arch=armv7a
 ARM64_CFLAGS = -arch=armv8a
 
+# Target triple; May vary based on cross compiler
 ARMHF_TRIPLE = arm-none-linux-gnueabihf
 ARM64_TRIPLE = aarch64-none-linux-gnu
 
 BASE_PATH := $(CURDIR)
+
+# External toolchain per target
+# ZapDragon uses:
+#   https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads
 EXT_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/arm-10.3
 EXT64_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/aarch64-10.3
 
+# Target sysroot needed for cross compilation
+# Ref:
+#    https://llvm.org/docs/HowToCrossCompileBuiltinsOnArm.html#prerequisites
 ARMHF_SYSROOT = $(EXT_TOOLCHAIN)/$(ARMHF_TRIPLE)/libc
 ARM64_SYSROOT = $(EXT64_TOOLCHAIN)/$(ARM64_TRIPLE)/libc
 
@@ -21,7 +30,10 @@ BUILD_CFLAGS = $(CFLAGS) $(CFLAGS_EXTRA) $(CPPFLAGS)
 BUILD_CXXFLAGS = $(CXXFLAGS) $(CXXFLAGS_EXTRA) $(CPPFLAGS)
 BUILD_LDFLAGS = $(LDFLAGS) $(LDFLAGS_EXTRA)
 
+# Path to installed clang
 CPATH = /usr/bin/
+
+# Where the resulting libs will go after an 'install' make
 INSTALL_DIR = out
 
 define build_cmd
