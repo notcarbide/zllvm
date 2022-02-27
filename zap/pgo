@@ -4,6 +4,10 @@ JOBS = $(shell grep processor /proc/cpuinfo|wc -l)
 CDATE = $(shell date "+%Y-%m-%d")
 ZLLVMVERSION = 14
 
+ifeq ($(shell test -e /usr/bin/ccache && echo -n yes),yes)
+	CCACHE_CONFIG := -DLLVM_CCACHE_BUILD=ON
+endif
+
 # Use llvm linker
 CFLAGS_EXTRA =
 CXXFLAGS_EXTRA =
@@ -118,7 +122,7 @@ test-instr:
 
 llvm-instr:
 	$(call cmake_common,$@) \
-		$(INSTR_FLAGS)
+		$(INSTR_FLAGS) $(CCACHE_CONFIG)
 	ninja -C $@ install
 
 clean:
