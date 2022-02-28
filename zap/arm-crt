@@ -39,12 +39,12 @@ INSTALL_DIR = out
 define build_cmd
 	cmake llvm-project/compiler-rt -B $1-rt \
 		-G Ninja \
-		-DLLVM_CONFIG_PATH=$(CPATH)llvm-config \
-		-DCMAKE_AR=$(CPATH)llvm-ar \
-		-DCMAKE_NM=$(CPATH)llvm-nm \
-		-DCMAKE_RANLIB=$(CPATH)llvm-ranlib \
-		-DCMAKE_C_COMPILER=$(CPATH)clang \
-		-DCMAKE_CXX_COMPILER=$(CPATH)clang++ \
+		-DLLVM_CONFIG_PATH=$(CPATH)llvm-config$(ZLLVMVERSION) \
+		-DCMAKE_AR=$(CPATH)llvm-ar$(ZLLVMVERSION) \
+		-DCMAKE_NM=$(CPATH)llvm-nm$(ZLLVMVERSION) \
+		-DCMAKE_RANLIB=$(CPATH)llvm-ranlib$(ZLLVMVERSION) \
+		-DCMAKE_C_COMPILER=$(CPATH)clang$(ZLLVMVERSION) \
+		-DCMAKE_CXX_COMPILER=$(CPATH)clang++$(ZLLVMVERSION) \
 		-DCMAKE_ASM_COMPILER_TARGET="$2" \
 		-DCMAKE_C_COMPILER_TARGET="$2" \
 		-DCMAKE_CXX_COMPILER_TARGET="$2" \

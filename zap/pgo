@@ -2,7 +2,7 @@
 
 JOBS = $(shell grep processor /proc/cpuinfo|wc -l)
 CDATE = $(shell date "+%Y-%m-%d")
-ZLLVMVERSION = 14
+ZLLVMVERSION = -14
 
 ifeq ($(shell test -e /usr/bin/ccache && echo -n yes),yes)
 	CCACHE_CONFIG := -DLLVM_CCACHE_BUILD=ON
@@ -68,17 +68,17 @@ PGO_FLAGS := \
 define cmake_common
 	cmake -S llvm-project/llvm/ -B $1 \
 		-G Ninja \
-		-DCMAKE_C_COMPILER=/usr/bin/clang \
-		-DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
-		-DCMAKE_LINKER=/usr/bin/ld.lld \
-	        -DCMAKE_INSTALL_PREFIX=$1/out/zllvm-$(ZLLVMVERSION) \
+		-DCMAKE_C_COMPILER=/usr/bin/clang$(ZLLVMVERSION) \
+		-DCMAKE_CXX_COMPILER=/usr/bin/clang++$(ZLLVMVERSION) \
+		-DCMAKE_LINKER=/usr/bin/ld.lld$(ZLLVMVERSION) \
+	        -DCMAKE_INSTALL_PREFIX=$1/out/zllvm$(ZLLVMVERSION) \
 	        -DCMAKE_BUILD_TYPE=Release \
 	        -DCMAKE_C_FLAGS="$(BUILD_CFLAGS)" \
 	        -DCMAKE_CXX_FLAGS="$(BUILD_CXXFLAGS)" \
 		-DCMAKE_SHARED_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
 		-DCMAKE_MODULE_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
 	        -DCMAKE_EXE_LINKER_FLAGS="$(BUILD_LDFLAGS)" \
-		-DLLVM_TABLEGEN=/usr/bin/llvm-tblgen \
+		-DLLVM_TABLEGEN=/usr/bin/llvm-tblgen$(ZLLVMVERSION) \
 	        -DLLVM_TARGETS_TO_BUILD="Native;ARM" \
 		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="AArch64" \
 		-DLLVM_ENABLE_LLD=ON \
@@ -96,19 +96,20 @@ endef
 default all: llvm-instr test-instr llvm-pgo package-pgo
 
 package-pgo:
-	cp llvm-project/llvm/LICENSE.TXT llvm-pgo/out/zllvm-$(ZLLVMVERSION)
+	cp llvm-project/llvm/LICENSE.TXT llvm-pgo/out/zllvm$(ZLLVMVERSION)
 	XZ_OPT="-4 -T$(JOBS)" \
-		tar Jvcf zapdragon-$(ZLLVMVERSION)-BETA_x86-$(CDATE).tar.xz \
-		-C llvm-pgo/out zllvm-$(ZLLVMVERSION)
+		tar Jvcf zapdragon$(ZLLVMVERSION)-BETA_x86-$(CDATE).tar.xz \
+		-C llvm-pgo/out zllvm$(ZLLVMVERSION)
 
 llvm-pgo: BUILD_LDFLAGS += -Wl,--build-id
 llvm-pgo:
 	$(call cmake_common,$@) \
 		$(PGO_FLAGS)
 	ninja -C $@ install
-	zap/arm-crt clean && zap/arm-crt && \
+	zap/arm-crt clean && \
+		zap/arm-crt ZLLVMVERSION="$(ZLLVMVERSION)" && \
 		zap/arm-crt install \
-		INSTALL_DIR=$(PGO_PATH)/out/zllvm-$(ZLLVMVERSION)/lib/clang/*/lib/linux
+		INSTALL_DIR=$(PGO_PATH)/out/zllvm$(ZLLVMVERSION)/lib/clang/*/lib/linux
 
 test-instr:
 	cd $(KERNEL_DIR) && \
@@ -117,9 +118,9 @@ test-instr:
 		git checkout origin/$(KERNEL_BRANCH) && \
 		make clean && \
 		./compile PACKAGE_KERNEL=no OPT_CONFIGS="" \
-			LLVM_DIR=$(INSTR_PATH)/out/zllvm-$(ZLLVMVERSION)
+			LLVM_DIR=$(INSTR_PATH)/out/zllvm$(ZLLVMVERSION)
 	cd llvm-instr/profiles && \
-		llvm-profdata merge -output=clang.profdata *
+		llvm-profdata$(ZLLVMVERSION) merge -output=clang.profdata *
 
 llvm-instr:
 	$(call cmake_common,$@) \
