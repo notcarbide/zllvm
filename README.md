@@ -10,7 +10,7 @@ based on/inspired by Debian's tools for creating
 
 **Projects enabled**
 * [clang](https://clang.llvm.org/)
-* [llvm](https://llvm.org/)
+* [lld](https://lld.llvm.org/)
 * [polly](https://polly.llvm.org/)
 
 **Runtimes enabled** (used by default)
