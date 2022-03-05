@@ -117,7 +117,7 @@ test-instr:
 		git reset --hard && \
 		git checkout origin/$(KERNEL_BRANCH) && \
 		make clean && \
-		./compile PACKAGE_KERNEL=no \
+		./compile all PACKAGE_KERNEL=no \
 			LLVM_DIR=$(INSTR_PATH)/out/zllvm$(ZLLVMVERSION)
 	cd llvm-instr/profiles && \
 		llvm-profdata$(ZLLVMVERSION) merge -output=clang.profdata *
