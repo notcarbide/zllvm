@@ -2,6 +2,9 @@
 
 BRANCH=release/14.x
 
+CLANGVAR=`$PWD/../zllvm-14/bin/clang --version | head -1 | cut -d ' ' -f6`
+CLANGREF=${CLANGVAR%)}
+
 reset_repo ()
 {
   cd $PWD/$1
@@ -12,6 +15,7 @@ reset_repo ()
   git clean -qfd
   git checkout $BRANCH > /dev/null
   git pull
+  LLVMREF=`git rev-parse --short HEAD`
 }
 
 if [ ! -d llvm-project ]; then
@@ -21,6 +25,9 @@ else
   echo "Resetting LLVM Project source code to origin/$BRANCH..."
   reset_repo llvm-project
 fi
+
+echo "Generating a changelog between the current clang and updated LLVM source..."
+git log --oneline $CLANGREF^..$LLVMREF > ../changes.txt
 
 echo "\nApplying patch(es)..."
 git apply -v ../zap/patches/*.patch
