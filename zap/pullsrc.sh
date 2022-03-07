@@ -27,7 +27,13 @@ else
 fi
 
 echo "Generating a changelog between the current clang and updated LLVM source..."
-git log --oneline $CLANGREF^..$LLVMREF > ../changes.txt
+echo "# Changelog\n## LLVM Changes:\n" > ../changes.txt
+git log --oneline $CLANGREF^..$LLVMREF >> ../changes.txt
+for change in `cat ../changes.txt | cut -d " " -f1`; do
+	case "$change" in \#*) continue ;; esac
+	sed -i "s,$change,[$change](https://github.com/llvm/llvm-project/commit/$change),g" \
+		../changes.txt
+done
 
 echo "\nApplying patch(es)..."
 git apply -v ../zap/patches/*.patch
