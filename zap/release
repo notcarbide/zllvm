@@ -1,0 +1,18 @@
+#!/bin/sh
+
+RELEASE=`ls | grep .tar.xz | cut -f 1 -d '.'`
+LAST_RELEASE=`git tag | tail -1`
+LAST_TAG=`git rev-list -n 1 $LAST_RELEASE`
+
+echo "Appending ZAP changes to changes.txt...\n"
+echo "\n## ZAP Changes:\n" >> changes.txt
+git log --oneline $LAST_RELEASE^..HEAD >> changes.txt
+for change in `cat changes.txt | cut -d " " -f1`; do
+	case "$change" in \#*) continue ;; \[*) continue ;; esac
+	sed -i "s,$change,[$change](https://github.com/notcarbide/zllvm/commit/$change),g" \
+		changes.txt
+done
+
+cat changes.txt
+echo "\nPress ENTER to upload $RELEASE to GitHub." && head -n 1 >/dev/null
+gh release create -F changes.txt -t $RELEASE $RELEASE $RELEASE.tar.xz #zllvm-toolchain
