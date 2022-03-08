@@ -22,7 +22,10 @@ BASE_PATH := $(CURDIR)
 INSTR_PATH := $(BASE_PATH)/llvm-instr
 PGO_PATH := $(BASE_PATH)/llvm-pgo
 
-PROFILE_PATH := $(INSTR_PATH)/profiles
+# Cross compile compiler-rt builtins & orc for ARM + ARM64
+# Requires arm-crt file to be configured for local build env
+# Disable otherwise this step will fail
+ARM_CRT=yes
 
 # Compile kernel to test instrumented build
 KERNEL_DIR = $(BASE_PATH)/../pi-kernel
@@ -106,10 +109,12 @@ llvm-pgo:
 	$(call cmake_common,$@) \
 		$(PGO_FLAGS)
 	ninja -C $@ install
+ifeq ($(ARM_CRT),yes)
 	zap/arm-crt clean && \
 		zap/arm-crt ZLLVMVERSION="$(ZLLVMVERSION)" && \
 		zap/arm-crt install \
 		INSTALL_DIR=$(PGO_PATH)/out/zllvm$(ZLLVMVERSION)/lib/clang/*/lib/linux
+endif
 
 test-instr:
 	cd $(KERNEL_DIR) && \
