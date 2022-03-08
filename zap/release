@@ -2,7 +2,6 @@
 
 RELEASE=`ls | grep .tar.xz | cut -f 1 -d '.'`
 LAST_RELEASE=`git tag | tail -1`
-LAST_TAG=`git rev-list -n 1 $LAST_RELEASE`
 
 echo "Appending ZAP changes to changes.txt...\n"
 echo "\n## ZAP Changes:\n" >> changes.txt
