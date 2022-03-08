@@ -3,9 +3,9 @@
 support for ARM, AArch64, and Native (x86) targets.
 It is built with "Thin" Link Time Optimization and 
 Profile-Guided Optimization (profiled specifically 
-for building the ZapPi Kernel for ARM64). The 
-scripts to update and build ZapDragon are heavily 
-based on/inspired by Debian's tools for creating 
+for building the ZapPi Kernel). The scripts to update 
+and build ZapDragon are heavily based on/inspired by 
+Debian's tools for creating 
 [LLVM Snapshots](https://salsa.debian.org/pkg-llvm-team/llvm-toolchain.git).
 
 **Projects enabled**
@@ -43,7 +43,7 @@ zap/pgo
 Note that options can be configured via passing the 
 parameter after zap/pgo, ex:
 ```
-zap/pgo KERNEL_DIR=/my/kernel/dir KERNEL_BRANCH=example
+zap/pgo KERNEL_DIR=/my/kernel/dir KERNEL_BRANCH=example ARM_CRT=no
 ```
 
 The separate zap/arm-crt script can be used to cross 
@@ -51,4 +51,5 @@ compile the compiler-rt runtime for ARM and AArch64,
 although it has [requirements](https://llvm.org/docs/HowToCrossCompileBuiltinsOnArm.html#prerequisites)
 and will need to be configured to the local build env. 
 All of the variables that might require modifying should 
-be noted within the `zap/arm-crt` file.
+be noted within the `zap/arm-crt` file. Can be disabled 
+via the ARM_CRT parameter (see above).
