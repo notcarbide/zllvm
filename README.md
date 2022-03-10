@@ -19,11 +19,16 @@ Debian's tools for creating
 * [libc++abi](https://libcxxabi.llvm.org/)
 * [libunwind](https://github.com/llvm/llvm-project/tree/main/libunwind)
 
+Compiled builds can be found in [releases](https://github.com/notcarbide/zllvm/releases).
+
 ## Build
 The kernel source for ZapPi Kernel is required to 
 run the tests for PGO. It is recommended to clone it 
 alongside this repo, although it can be configured by 
 the `KERNEL_DIR` parameter.
+
+This project is compiled using the LLVM made available 
+via [apt](https://apt.llvm.org/).
 
 Clone the repository:
 ```
@@ -51,5 +56,5 @@ compile the compiler-rt runtime for ARM and AArch64,
 although it has [requirements](https://llvm.org/docs/HowToCrossCompileBuiltinsOnArm.html#prerequisites)
 and will need to be configured to the local build env. 
 All of the variables that might require modifying should 
-be noted within the `zap/arm-crt` file. Can be disabled 
-via the ARM_CRT parameter (see above).
+be noted within the `zap/arm-crt` file. This build step 
+can be disabled via the `ARM_CRT` parameter (see above).
