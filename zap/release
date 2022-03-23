@@ -14,4 +14,6 @@ done
 
 cat changes.txt
 echo "\nPress ENTER to upload $RELEASE to GitHub." && head -n 1 >/dev/null
+git tag -s -a $RELEASE -m "Tag for release $RELEASE."
+git push origin $RELEASE
 gh release create -F changes.txt -t $RELEASE $RELEASE $RELEASE.tar.xz #zllvm-toolchain
