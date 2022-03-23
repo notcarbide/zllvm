@@ -101,7 +101,7 @@ default all: llvm-instr test-instr llvm-pgo package-pgo
 package-pgo:
 	cp llvm-project/llvm/LICENSE.TXT llvm-pgo/out/zllvm$(ZLLVMVERSION)
 	XZ_OPT="-4 -T$(JOBS)" \
-		tar Jvcf zapdragon$(ZLLVMVERSION)-BETA_x86-$(CDATE).tar.xz \
+		tar Jvcf zapdragon$(ZLLVMVERSION)_x86-$(CDATE).tar.xz \
 		-C llvm-pgo/out zllvm$(ZLLVMVERSION)
 
 llvm-pgo: BUILD_LDFLAGS += -Wl,--build-id
