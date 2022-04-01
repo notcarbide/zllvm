@@ -14,6 +14,14 @@ done
 
 cat changes.txt
 echo "\nPress ENTER to upload $RELEASE to GitHub." && head -n 1 >/dev/null
+
+echo "\nGenerating and pushing a signed tag..."
 git tag -s -a $RELEASE -m "Tag for release $RELEASE."
 git push origin $RELEASE
-gh release create -F changes.txt -t $RELEASE $RELEASE $RELEASE.tar.xz #zllvm-toolchain
+
+echo "\nSigning $RELEASE.tar.xz..."
+gpg --detach-sign --armor --output $RELEASE.tar.xz.asc $RELEASE.tar.xz
+
+echo "\nCreating a release for GitHub and uploading files..."
+gh release create -F changes.txt -t $RELEASE $RELEASE \
+  $RELEASE.tar.xz $RELEASE.tar.xz.asc
