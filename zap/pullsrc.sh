@@ -21,6 +21,7 @@ reset_repo ()
 if [ ! -d llvm-project ]; then
   echo "Downloading LLVM Project source code..."
   git clone https://github.com/llvm/llvm-project -b $BRANCH
+  cd llvm-project
 else
   echo "Resetting LLVM Project source code to origin/$BRANCH..."
   reset_repo llvm-project
