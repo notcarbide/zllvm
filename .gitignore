@@ -1,4 +1,5 @@
 *.tar.xz
+*.tar.xz.asc
 /arm64-rt/
 /armhf-rt/
 /llvm-instr/
