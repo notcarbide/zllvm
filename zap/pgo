@@ -11,7 +11,7 @@ endif
 # Use llvm linker
 CFLAGS_EXTRA = -Wno-unused-command-line-argument
 CXXFLAGS_EXTRA = -Wno-unused-command-line-argument
-LDFLAGS_EXTRA =
+LDFLAGS_EXTRA = -fuse-ld=lld$(ZLLVMVERSION)
 
 # Collect build flags
 BUILD_CFLAGS = $(CFLAGS) $(CFLAGS_EXTRA) $(CPPFLAGS)
@@ -80,7 +80,6 @@ define cmake_common
 		-DLLVM_ENABLE_PROJECTS="clang;lld;polly" \
 	        -DLLVM_TARGETS_TO_BUILD="Native;ARM" \
 		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="AArch64" \
-		-DLLVM_ENABLE_LLD=ON \
 	        -DLLVM_ENABLE_PIC=ON \
 		-DLLVM_ENABLE_FFI=ON \
 	        -DLLVM_INSTALL_UTILS=ON \

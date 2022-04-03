@@ -24,7 +24,7 @@ ARM64_SYSROOT = $(EXT64_TOOLCHAIN)/$(ARM64_TRIPLE)/libc
 
 CFLAGS_EXTRA = -Wno-unused-command-line-argument
 CXXFLAGS_EXTRA = -Wno-unused-command-line-argument
-LDFLAGS_EXTRA = -fuse-ld=lld
+LDFLAGS_EXTRA = -fuse-ld=lld$(ZLLVMVERSION)
 
 BUILD_CFLAGS = $(CFLAGS) $(CFLAGS_EXTRA) $(CPPFLAGS)
 BUILD_CXXFLAGS = $(CXXFLAGS) $(CXXFLAGS_EXTRA) $(CPPFLAGS)
