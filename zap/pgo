@@ -29,7 +29,7 @@ ARM_CRT=yes
 
 # Compile kernel to test instrumented build
 KERNEL_DIR = $(BASE_PATH)/../pi-kernel
-KERNEL_BRANCH = next
+KERNEL_BRANCH = stable
 
 INSTR_FLAGS := \
 	-DLLVM_BUILD_INSTRUMENTED=IR \
