@@ -13,8 +13,8 @@ BASE_PATH := $(CURDIR)
 # External toolchain per target
 # ZapDragon uses:
 #   https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads
-EXT_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/arm-10.3
-EXT64_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/aarch64-10.3
+EXT_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/arm-latest
+EXT64_TOOLCHAIN = $(BASE_PATH)/../arm-gcc/aarch64-latest
 
 # Target sysroot needed for cross compilation
 # Ref:
