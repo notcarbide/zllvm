@@ -8,7 +8,7 @@ echo "\n## ZAP Changes:\n" >> changes.txt
 git log --oneline $LAST_RELEASE^..HEAD >> changes.txt
 for change in `cat changes.txt | cut -d " " -f1`; do
 	case "$change" in \#*) continue ;; \[*) continue ;; esac
-	sed -i "s,$change,[$change](https://github.com/notcarbide/zllvm/commit/$change),g" \
+	sed -i "s,$change,[$change](https://github.com/uzap/zllvm/commit/$change),g" \
 		changes.txt
 done
 
