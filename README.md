@@ -19,7 +19,7 @@ Debian's tools for creating
 * [libc++abi](https://libcxxabi.llvm.org/)
 * [libunwind](https://github.com/llvm/llvm-project/tree/main/libunwind)
 
-Compiled builds can be found in [releases](https://github.com/notcarbide/zllvm/releases).
+Compiled builds can be found in [releases](https://github.com/uzap/zllvm/releases).
 
 ## Build
 The kernel source for ZapPi Kernel is required to 
@@ -32,7 +32,7 @@ via [apt](https://apt.llvm.org/).
 
 Clone the repository:
 ```
-git clone https://github.com/notcarbide/zllvm.git
+git clone https://github.com/uzap/zllvm.git
 ```
 
 Pull and patch the LLVM source:
