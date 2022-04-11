@@ -1,0 +1,64 @@
+#cloud-config
+
+# Upgrading to a recent Ryzen processor has created a
+# reason to use newer kernels with improved AMD support.
+# This will cause compatibility issues on LTS systems
+# regarding glibc versions.
+
+# This cloud-config is used in conjunction with
+# multipass to spin up a build env with the required
+# tools to build ZLLVM (and by proxy ZapPi Kernel).
+
+# Sources and ARM GCC are not included due to multipass
+# timeouts, thus will need to be manually configured
+# within the VM.
+
+### Initial Upgrades
+
+package_update: true
+package_upgrade: true
+
+### Configure Packages
+
+packages:
+  # LLVM + Tools
+  - cmake
+  - git
+  - g++-multilib
+  - ninja-build
+  - python3-distutils
+  - clang-14
+  - clang-format-14
+  - clang-tidy-14
+  - clang-tools-14
+  - clangd-14
+  - llvm-14-dev
+  - llvm-14-tools
+  - lld-14
+  - lldb-14
+  - libc++-14-dev
+  - libc++abi-14-dev
+  - libclang-14-dev
+  - libclang-common-14-dev
+  - libclang-cpp14-dev
+  - libunwind-14-dev
+  # Kernel
+  - bc
+  - bison
+  - flex
+  - make 
+  - libssl-dev
+  - libc6-dev
+  - libncurses5-dev
+  # Ccache (optional; instrumented only)
+  - ccache
+  # Fakeroot (optional)
+  - fakeroot
+
+### Configure apt
+
+apt:
+  sources:
+    apt-llvm.list:
+      source: "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main"
+      keyid: 6084 F3CF 814B 57C1 CF12  EFD5 15CF 4D18 AF4F 7421
